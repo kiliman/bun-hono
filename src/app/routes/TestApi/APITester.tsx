@@ -18,9 +18,13 @@ export function APITester() {
       const url = new URL(endpoint, location.href);
       const method = formData.get("method") as string;
       const res = await fetch(url, { method });
-
-      const data = await res.json();
-      responseInputRef.current!.value = JSON.stringify(data, null, 2);
+      if (res.ok) {
+        const data = await res.json();
+        responseInputRef.current!.value = JSON.stringify(data, null, 2);
+        return
+      }
+      const body = await res.text()
+      responseInputRef.current!.value = `Status: ${res.status} ${res.statusText}\n${body}`
     } catch (error) {
       responseInputRef.current!.value = String(error);
     }
