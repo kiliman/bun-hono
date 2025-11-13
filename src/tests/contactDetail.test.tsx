@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it } from "bun:test";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRoutesStub } from "react-router";
+import { beforeEach, describe, expect, it } from "vitest";
 import ContactsSkeletonPage from "@/Layouts/HomeSkeleton";
 import ContactDetail from "@/pages/ContactDetail";
 import ContactsPage from "@/pages/Contacts";
@@ -62,8 +62,8 @@ describe("Contact Detail Page", () => {
     await waitFor(() => screen.findByText("jane_doe"));
     const favoriteButton = screen.getByLabelText("Favorite");
     await user.click(favoriteButton);
+    expect(screen.getByLabelText("Not Favorite")).toBeInTheDocument();
     const toggleFavFetcher = screen.getByTestId("toggle-favorite");
-    expect(screen.getByLabelText("Favorite")).toBeInTheDocument();
     expect(toggleFavFetcher).toBeDisabled();
   });
 });

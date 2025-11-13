@@ -1,6 +1,6 @@
-import { expect, test } from "bun:test";
 import { render, screen, waitFor } from "@testing-library/react";
 import { createRoutesStub } from "react-router";
+import { expect, test } from "vitest";
 import ContactsSkeletonPage from "@/Layouts/HomeSkeleton";
 import ContactsPage from "@/pages/Contacts";
 import type { Contact } from "@/types/contacts";
