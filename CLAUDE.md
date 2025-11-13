@@ -83,13 +83,13 @@ HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will tr
 </html>
 ```
 
-With the following `frontend.tsx`:
+With the following `main.tsx`:
 
-```tsx#frontend.tsx
+```tsx#main.tsx
 import React from "react";
 
 // import .css files directly and it works
-import './index.css';
+import '@/index.css';
 
 import { createRoot } from "react-dom/client";
 
