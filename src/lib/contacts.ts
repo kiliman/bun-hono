@@ -1,29 +1,26 @@
-import axios from "axios";
+import { client } from "@/lib/client";
 import type { Contact, NewContact } from "@/types/contacts";
 
-const api = axios.create({
+const api = client.create({
   baseURL: "/api",
 });
 
 export const fetchContacts = async () => {
-  const response = await api.get<Contact[]>("/contacts");
-  return response.data;
+  return await api.get<Contact[]>("/contacts");
 };
 
 export const fetchContactById = async (id: string) => {
-  const response = await api.get<Contact>(`/contacts/${id}`);
-  return response.data;
+  return await api.get<Contact>(`/contacts/${id}`);
 };
 
 export const createContact = async (contact: NewContact) => {
-  const response = await api.post<Contact>("/contacts", contact);
-  return response.data;
+  return await api.post<Contact>("/contacts", contact);
 };
 
 export const deleteContact = async (id: string) => {
-  await api.delete(`/contacts/${id}`);
+  return await api.delete(`/contacts/${id}`);
 };
 
 export const updateFavoriteStatus = async (id: string, favorite: boolean) => {
-  await api.patch(`/contacts/${id}`, { favorite });
+  return await api.patch(`/contacts/${id}`, { favorite });
 };

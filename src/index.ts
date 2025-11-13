@@ -1,4 +1,3 @@
-import { serve } from "bun";
 import { Hono } from "hono";
 import api from "./api";
 import index from "./index.html";
@@ -6,7 +5,7 @@ import index from "./index.html";
 const app = new Hono();
 app.route("/api/", api);
 
-const server = serve({
+const server = Bun.serve({
   routes: {
     "/api/*": app.fetch, // API routes handled first
     "/*": index, // React app serves everything else

@@ -25,9 +25,10 @@ Default to using Bun instead of Node.js.
 
 ## Testing
 
-Use `bun test` to run tests.
+Use `bun:test` to write tests with describe, test, expect
+Use `@testing-library/react` for React tests
 
-```ts#index.test.ts
+```ts
 import { test, expect } from "bun:test";
 
 test("hello world", () => {
@@ -35,11 +36,23 @@ test("hello world", () => {
 });
 ```
 
+## Types
+
+- Use TypeScript types and share them between fronend and backend in the `src/types` folder (alias @types)
+
+## Backend
+
+
+
+
 ## Frontend
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+- Use React with React Router Data Mode, shadcn/ui, and Tailwind
+- Use loaders and actions for data fetching/mutations running client side
 
-Server:
+
+
+
 
 ```ts#index.ts
 import index from "./index.html"
