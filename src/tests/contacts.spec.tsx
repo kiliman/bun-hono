@@ -61,12 +61,12 @@ test("Home render sidebar contacts", async () => {
   render(<Stub initialEntries={["/"]} />);
   // check fallback skeleton is rendered
   const mainPanelSkeleton = screen.getByTestId("main-panel-skeleton");
-  // expect(mainPanelSkeleton).toBeInTheDocument();
+  expect(mainPanelSkeleton).toBeInTheDocument();
   await waitFor(() => screen.findByText("Jane Doe"));
   await waitFor(() => screen.findByText("John Smith"));
   // check skeleton is not rendered
   const mainPanelSkeletonAfterLoad = screen.queryByTestId(
     "main-panel-skeleton",
   );
-  // expect(mainPanelSkeletonAfterLoad).not.toBeInTheDocument();
+  expect(mainPanelSkeletonAfterLoad).not.toBeInTheDocument();
 });

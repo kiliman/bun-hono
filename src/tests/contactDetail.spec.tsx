@@ -62,8 +62,8 @@ describe("Contact Detail Page", () => {
     await waitFor(() => screen.findByText("jane_doe"));
     const favoriteButton = screen.getByLabelText("Favorite");
     await user.click(favoriteButton);
-    // const toggleFavFetcher = screen.getByTestId("toggle-favorite");
-    // //expect(screen.getByLabelText("Favorite")).toBeInTheDocument();
-    // expect(toggleFavFetcher).toBeDisabled();
+    const toggleFavFetcher = screen.getByTestId("toggle-favorite");
+    expect(screen.getByLabelText("Favorite")).toBeInTheDocument();
+    expect(toggleFavFetcher).toBeDisabled();
   });
 });
