@@ -30,6 +30,8 @@ export const newContactAction = async ({ request }: ActionFunctionArgs) => {
           avatar: (formData.get("avatar") as string) || undefined,
         };
         const newContactResponse = await createContact(newContact);
+        if (!newContactResponse)
+          return new Response("Could not create contact", { status: 500 });
         return redirect(`/contacts/${newContactResponse.id}`);
       },
     };

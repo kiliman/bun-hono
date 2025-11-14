@@ -2,7 +2,7 @@ import { client } from "@/lib/client";
 import type { Contact, NewContact } from "@/types/contacts";
 
 const api = client.create({
-  baseURL: "/api",
+  baseURL: "http://localhost:3000/api",
 });
 
 export const fetchContacts = async () => {

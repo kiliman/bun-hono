@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRoutesStub } from "react-router";
 import { expect, test } from "vitest";
+import { newContactAction } from "@/pages/actions";
 import ContactForm from "@/pages/ContactForm";
 
 test("ContactForm renders with empty fields", async () => {
@@ -47,12 +48,13 @@ test("ContactForm submits valid data", async () => {
   const user = userEvent.setup();
   const Stub = createRoutesStub([
     {
-      path: "/",
+      path: "/contacts/new",
+      action: newContactAction,
       Component: ContactForm,
     },
   ]);
   // render the app stub at "/"
-  render(<Stub initialEntries={["/"]} />);
+  render(<Stub initialEntries={["/contacts/new"]} />);
   // fill the form with valid data
   await user.type(screen.getByLabelText("First Name"), "John");
   await user.type(screen.getByLabelText("Last Name"), "Doe");
