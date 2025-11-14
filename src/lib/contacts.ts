@@ -1,8 +1,11 @@
 import { client } from "@/lib/client";
 import type { Contact, NewContact } from "@/types/contacts";
 
+// test needs full url, while others are same origin as browser URL
+const API_ORIGIN = process.env.NODE_ENV === "test" ? "http://localhost" : "";
+
 const api = client.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: `${API_ORIGIN}/api`,
 });
 
 export const fetchContacts = async () => {
