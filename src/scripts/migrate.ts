@@ -3,6 +3,7 @@
 import { Database } from "bun:sqlite";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { logger } from "../lib/logger";
 import { migrate, rollback, status } from "../utils/migrate";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,7 +11,9 @@ const __dirname = dirname(__filename);
 
 // Default to project root data folder in development, allow override via env
 const defaultDbPath = join(__dirname, "../../data/app.db");
-const dbPath = process.env.DATABASE_PATH ? resolve(process.env.DATABASE_PATH) : defaultDbPath;
+const dbPath = process.env.DATABASE_PATH
+  ? resolve(process.env.DATABASE_PATH)
+  : defaultDbPath;
 const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrency
@@ -18,29 +21,30 @@ db.exec("PRAGMA journal_mode = WAL");
 
 const command = process.argv[2];
 const toArg = process.argv.indexOf("--to");
-const toValue = toArg !== -1 ? Number.parseInt(process.argv[toArg + 1], 10) : undefined;
+const toValue =
+  toArg !== -1 ? Number.parseInt(process.argv[toArg + 1], 10) : undefined;
 
 try {
   switch (command) {
     case "up":
     case undefined: {
       // Apply all pending migrations
-      console.log("Running migrations...");
+      logger.info("Running migrations...");
       migrate(db);
-      console.log("✅ Migrations complete");
+      logger.info("✅ Migrations complete");
       break;
     }
 
     case "down": {
       // Rollback migrations
       if (toValue !== undefined) {
-        console.log(`Rolling back to migration ${toValue}...`);
+        logger.info(`Rolling back to migration ${toValue}...`);
         rollback(db, { to: toValue });
       } else {
-        console.log("Rolling back last migration...");
+        logger.info("Rolling back last migration...");
         rollback(db);
       }
-      console.log("✅ Rollback complete");
+      logger.info("✅ Rollback complete");
       break;
     }
 
@@ -51,8 +55,8 @@ try {
     }
 
     default: {
-      console.error(`Unknown command: ${command}`);
-      console.log(`
+      logger.error(`Unknown command: ${command}`);
+      logger.info(`
 Usage:
   bun run migrate         Apply all pending migrations
   bun run migrate up      Apply all pending migrations
@@ -64,7 +68,7 @@ Usage:
     }
   }
 } catch (error) {
-  console.error("Migration failed:", error);
+  logger.error("Migration failed:", error);
   process.exit(1);
 } finally {
   db.close();

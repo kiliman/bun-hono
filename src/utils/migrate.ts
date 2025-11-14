@@ -2,6 +2,7 @@ import type { Database } from "bun:sqlite";
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { logger } from "../lib/logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,7 +16,8 @@ interface Migration {
   down: string;
 }
 
-type ParsedMigration = Partial<Migration> & Pick<Migration, "id" | "name" | "filename">;
+type ParsedMigration = Partial<Migration> &
+  Pick<Migration, "id" | "name" | "filename">;
 
 interface MigrateOptions {
   force?: "last" | false;
@@ -30,7 +32,11 @@ interface MigrateOptions {
  * @param options - Migration options
  */
 export function migrate(db: Database, options: MigrateOptions = {}): Database {
-  const { force = false, table = "migration", migrationsPath = "./migrations" } = options;
+  const {
+    force = false,
+    table = "migration",
+    migrationsPath = "./migrations",
+  } = options;
 
   const projectRoot = resolve(__dirname, "../../");
   const location = resolve(projectRoot, migrationsPath);
@@ -48,12 +54,12 @@ export function migrate(db: Database, options: MigrateOptions = {}): Database {
       }))
       .sort((a, b) => Math.sign(a.id - b.id));
   } catch (_err) {
-    console.log(`No migrations directory found at ${location}`);
+    logger.info(`No migrations directory found at ${location}`);
     return db;
   }
 
   if (!parsedMigrations.length) {
-    console.log("No migration files found");
+    logger.info("No migration files found");
     return db;
   }
 
@@ -75,7 +81,9 @@ export function migrate(db: Database, options: MigrateOptions = {}): Database {
     const down = parts[1];
 
     if (!down) {
-      throw new Error(`The ${migration.filename} file does not contain '-- Down' separator.`);
+      throw new Error(
+        `The ${migration.filename} file does not contain '-- Down' separator.`,
+      );
     }
 
     migrationFiles.push({
@@ -98,25 +106,37 @@ export function migrate(db: Database, options: MigrateOptions = {}): Database {
   )`);
 
   // Get the list of already applied migrations
-  let dbMigrations = db.query(`SELECT id, name, up, down FROM "${table}" ORDER BY id ASC`).all() as Migration[];
+  let dbMigrations = db
+    .query(`SELECT id, name, up, down FROM "${table}" ORDER BY id ASC`)
+    .all() as Migration[];
 
   // Undo migrations that exist only in the database but not in files,
   // also undo the last migration if the `force` option was set to `last`.
   const lastMigration = migrationFiles[migrationFiles.length - 1];
-  const reversedDbMigrations = [...dbMigrations].sort((a, b) => Math.sign(b.id - a.id));
+  const reversedDbMigrations = [...dbMigrations].sort((a, b) =>
+    Math.sign(b.id - a.id),
+  );
 
   for (const migration of reversedDbMigrations) {
-    const isForceLastMigration = force === "last" && lastMigration && migration.id === lastMigration.id;
-    const migrationNotInFiles = !migrationFiles.some((x) => x.id === migration.id);
+    const isForceLastMigration =
+      force === "last" && lastMigration && migration.id === lastMigration.id;
+    const migrationNotInFiles = !migrationFiles.some(
+      (x) => x.id === migration.id,
+    );
 
     if (migrationNotInFiles || isForceLastMigration) {
       db.run("BEGIN");
       try {
-        const downSql = (isForceLastMigration && lastMigration) ? lastMigration.down : migration.down;
+        const downSql =
+          isForceLastMigration && lastMigration
+            ? lastMigration.down
+            : migration.down;
         db.run(downSql);
         db.query(`DELETE FROM "${table}" WHERE id = ?`).run(migration.id);
         db.run("COMMIT");
-        console.log(`⬇️  Rolled back migration ${migration.id}: ${migration.name}`);
+        logger.info(
+          `⬇️  Rolled back migration ${migration.id}: ${migration.name}`,
+        );
         dbMigrations = dbMigrations.filter((x) => x.id !== migration.id);
       } catch (err) {
         db.run("ROLLBACK");
@@ -128,7 +148,9 @@ export function migrate(db: Database, options: MigrateOptions = {}): Database {
   }
 
   // Apply pending migrations
-  const lastMigrationId = dbMigrations.length ? (dbMigrations[dbMigrations.length - 1]?.id ?? 0) : 0;
+  const lastMigrationId = dbMigrations.length
+    ? (dbMigrations[dbMigrations.length - 1]?.id ?? 0)
+    : 0;
   for (const migration of migrationFiles) {
     if (migration.id > lastMigrationId) {
       db.run("BEGIN");
@@ -138,7 +160,7 @@ export function migrate(db: Database, options: MigrateOptions = {}): Database {
           `INSERT INTO "${table}" (id, name, up, down, applied_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         ).run(migration.id, migration.name, migration.up, migration.down);
         db.run("COMMIT");
-        console.log(`⬆️  Applied migration ${migration.id}: ${migration.name}`);
+        logger.info(`⬆️  Applied migration ${migration.id}: ${migration.name}`);
       } catch (err) {
         db.run("ROLLBACK");
         throw err;
@@ -155,14 +177,19 @@ export function migrate(db: Database, options: MigrateOptions = {}): Database {
  * @param db - bun:sqlite database instance
  * @param options - Rollback options
  */
-export function rollback(db: Database, options: { to?: number; table?: string } = {}): Database {
+export function rollback(
+  db: Database,
+  options: { to?: number; table?: string } = {},
+): Database {
   const { to, table = "migration" } = options;
 
   // Get current migrations
-  const dbMigrations = db.query(`SELECT id, name, down FROM "${table}" ORDER BY id DESC`).all() as Migration[];
+  const dbMigrations = db
+    .query(`SELECT id, name, down FROM "${table}" ORDER BY id DESC`)
+    .all() as Migration[];
 
   if (!dbMigrations.length) {
-    console.log("No migrations to rollback");
+    logger.info("No migrations to rollback");
     return db;
   }
 
@@ -173,14 +200,14 @@ export function rollback(db: Database, options: { to?: number; table?: string } 
     // Rollback to a specific migration (exclusive)
     migrationsToRollback = dbMigrations.filter((m) => m.id > to);
     if (!migrationsToRollback.length) {
-      console.log(`Already at migration ${to} or earlier`);
+      logger.info(`Already at migration ${to} or earlier`);
       return db;
     }
   } else {
     // Rollback just the last migration
     const lastMigration = dbMigrations[0];
     if (!lastMigration) {
-      console.log("No migrations to rollback");
+      logger.info("No migrations to rollback");
       return db;
     }
     migrationsToRollback = [lastMigration];
@@ -193,7 +220,9 @@ export function rollback(db: Database, options: { to?: number; table?: string } 
       db.run(migration.down);
       db.query(`DELETE FROM "${table}" WHERE id = ?`).run(migration.id);
       db.run("COMMIT");
-      console.log(`⬇️  Rolled back migration ${migration.id}: ${migration.name}`);
+      logger.info(
+        `⬇️  Rolled back migration ${migration.id}: ${migration.name}`,
+      );
     } catch (err) {
       db.run("ROLLBACK");
       throw err;
@@ -216,14 +245,14 @@ export function status(db: Database, table = "migration"): void {
     .all() as MigrationWithTimestamp[];
 
   if (!dbMigrations.length) {
-    console.log("No migrations applied yet");
+    logger.info("No migrations applied yet");
     return;
   }
 
-  console.log("\nApplied migrations:");
+  logger.info("\nApplied migrations:");
   for (const migration of dbMigrations) {
     const timestamp = migration.applied_at ? ` (${migration.applied_at})` : "";
-    console.log(`  ✓ ${migration.id}: ${migration.name}${timestamp}`);
+    logger.info(`  ✓ ${migration.id}: ${migration.name}${timestamp}`);
   }
-  console.log("");
+  logger.info("");
 }

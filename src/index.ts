@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import api from "./api";
 import index from "./index.html";
+import { logger } from "./lib/logger";
 
 const app = new Hono();
 app.route("/api/", api);
@@ -16,4 +17,7 @@ const server = Bun.serve({
   },
 });
 
-console.log(`🚀 Server running at ${server.url}`);
+logger.info(
+  { url: server.url.toString(), port: server.port },
+  "Server running",
+);

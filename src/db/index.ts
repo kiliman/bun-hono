@@ -1,6 +1,7 @@
 import { Database } from "bun:sqlite";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { logger } from "../lib/logger";
 import { migrate } from "../utils/migrate";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,4 +21,4 @@ db.exec("PRAGMA journal_mode = WAL");
 // Run migrations on startup
 migrate(db);
 
-console.log(`📦 Database initialized at ${dbPath}`);
+logger.info({ dbPath }, "Database initialized");

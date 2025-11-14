@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { db } from "@/db";
+import { logger } from "@/lib/logger";
 import {
   createContactSchema,
   idParamSchema,
@@ -17,7 +18,7 @@ api.get("/contacts", async (c) => {
     const contacts = db.query("SELECT * FROM contacts").all() as Contact[];
     return c.json<ApiResponse<Contact[]>>({ success: true, data: contacts });
   } catch (error) {
-    console.error("Error fetching contacts:", error);
+    logger.error({ error }, "Error fetching contacts");
     return c.json<ApiResponse<null>>(
       { success: false, data: null, error: "Failed to fetch contacts" },
       500,
@@ -42,7 +43,7 @@ api.get("/contacts/:id", zValidator("param", idParamSchema), async (c) => {
 
     return c.json<ApiResponse<Contact>>({ success: true, data: contact });
   } catch (error) {
-    console.error("Error fetching contact:", error);
+    logger.error({ error }, "Error fetching contact");
     return c.json<ApiResponse<null>>(
       { success: false, data: null, error: "Failed to fetch contact" },
       500,
@@ -68,7 +69,7 @@ api.post("/contacts", zValidator("json", createContactSchema), async (c) => {
 
     return c.json<ApiResponse<Contact>>({ success: true, data: result }, 201);
   } catch (error) {
-    console.error("Error creating contact:", error);
+    logger.error({ error }, "Error creating contact");
     // Check for unique constraint violations
     const errorMessage = error instanceof Error ? error.message : String(error);
     if (errorMessage.includes("UNIQUE constraint failed")) {
@@ -132,7 +133,7 @@ api.patch(
 
       return c.json<ApiResponse<Contact>>({ success: true, data: updated });
     } catch (error) {
-      console.error("Error updating contact:", error);
+      logger.error({ error }, "Error updating contact");
       // Check for unique constraint violations
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -174,7 +175,7 @@ api.delete("/contacts/:id", zValidator("param", idParamSchema), async (c) => {
     db.query("DELETE FROM contacts WHERE id = ?").run(id);
     return c.json<ApiResponse<null>>({ success: true, data: null });
   } catch (error) {
-    console.error("Error deleting contact:", error);
+    logger.error({ error }, "Error deleting contact");
     return c.json<ApiResponse<null>>(
       { success: false, data: null, error: "Failed to delete contact" },
       500,
