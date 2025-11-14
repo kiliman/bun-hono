@@ -1,4 +1,5 @@
 import { type ActionFunctionArgs, redirect } from "react-router";
+import { ApiError } from "@/lib/client";
 import {
   createContact,
   deleteContact,
@@ -21,18 +22,23 @@ export const newContactAction = async ({ request }: ActionFunctionArgs) => {
   const handlers: Record<string, () => Promise<Response | { error: string }>> =
     {
       POST: async () => {
-        const newContact: NewContact = {
-          firstName: formData.get("firstName") as string,
-          lastName: formData.get("lastName") as string,
-          username: formData.get("username") as string,
-          email: formData.get("email") as string,
-          phone: formData.get("phone") as string,
-          avatar: (formData.get("avatar") as string) || undefined,
-        };
-        const newContactResponse = await createContact(newContact);
-        if (!newContactResponse)
-          return new Response("Could not create contact", { status: 500 });
-        return redirect(`/contacts/${newContactResponse.id}`);
+        try {
+          const newContact: NewContact = {
+            firstName: formData.get("firstName") as string,
+            lastName: formData.get("lastName") as string,
+            username: formData.get("username") as string,
+            email: formData.get("email") as string,
+            phone: formData.get("phone") as string,
+            avatar: (formData.get("avatar") as string) || undefined,
+          };
+          const newContactResponse = await createContact(newContact);
+          return redirect(`/contacts/${newContactResponse.id}`);
+        } catch (error) {
+          if (error instanceof ApiError) {
+            return { error: error.message };
+          }
+          return { error: "Failed to create contact" };
+        }
       },
     };
 
@@ -49,15 +55,30 @@ export const contactDetailActions = async ({ request }: ActionFunctionArgs) => {
 
   const handlers: Record<string, () => Promise<Response | null>> = {
     DELETE: async () => {
-      const id = formData.get("id") as string;
-      await deleteContact(id);
-      return redirect("/");
+      try {
+        const id = formData.get("id") as string;
+        await deleteContact(id);
+        return redirect("/");
+      } catch (error) {
+        if (error instanceof ApiError) {
+          console.error("Failed to delete contact:", error.message);
+        }
+        // Still redirect even on error (contact might be gone)
+        return redirect("/");
+      }
     },
     PATCH: async () => {
-      const id = formData.get("id") as string;
-      const favorite = formData.get("favorite") === "true";
-      await updateFavoriteStatus(id, favorite);
-      return null;
+      try {
+        const id = formData.get("id") as string;
+        const favorite = formData.get("favorite") === "true";
+        await updateFavoriteStatus(id, favorite);
+        return null;
+      } catch (error) {
+        if (error instanceof ApiError) {
+          console.error("Failed to update favorite status:", error.message);
+        }
+        return null;
+      }
     },
   };
 

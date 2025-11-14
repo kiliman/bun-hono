@@ -1,3 +1,19 @@
+import type { ApiResponse } from "@/types/api";
+
+/**
+ * Custom error class for API errors
+ * Includes the HTTP status code and error message from the server
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 type ClientConfig = {
   baseURL: string;
 };
@@ -14,7 +30,7 @@ function create(config: ClientConfig) {
     method: string,
     url: string,
     options: RequestOptions = {},
-  ): Promise<T | null> {
+  ): Promise<T> {
     const fullUrl = `${baseURL}${url}`;
     const headers = {
       "Content-Type": "application/json",
@@ -32,13 +48,20 @@ function create(config: ClientConfig) {
 
     const response = await fetch(fullUrl, fetchOptions);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // Parse the response body
+    const text = await response.text();
+    const data: ApiResponse<T> = text
+      ? JSON.parse(text)
+      : { success: false, data: null, error: "Empty response" };
+
+    // Check if the API call was successful
+    if (!data.success || !response.ok) {
+      const errorMessage =
+        data.error || `HTTP error! status: ${response.status}`;
+      throw new ApiError(errorMessage, response.status);
     }
 
-    // Handle cases where response has no body (e.g., 204 No Content)
-    const text = await response.text();
-    return text ? (JSON.parse(text) as T) : null;
+    return data.data;
   }
 
   return {
@@ -51,8 +74,8 @@ function create(config: ClientConfig) {
     patch<T>(url: string, body?: unknown, headers?: Record<string, string>) {
       return request<T>("PATCH", url, { body, headers });
     },
-    delete(url: string, headers?: Record<string, string>) {
-      return request<void>("DELETE", url, { headers });
+    delete<T = void>(url: string, headers?: Record<string, string>) {
+      return request<T>("DELETE", url, { headers });
     },
   };
 }

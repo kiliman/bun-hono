@@ -14,7 +14,7 @@ This document tracks the implementation of production-ready features for the bun
 - [x] Phase 2: Database (bun:sqlite) ✅
 - [x] Phase 3: Validation (Zod + Error Handling) ✅
 - [x] Phase 4: Logging (pino) ✅
-- [ ] Phase 5: Client (Error Handling)
+- [x] Phase 5: Client (Error Handling) ✅
 - [ ] Phase 6: Testing (API Integration Tests)
 - [ ] Phase 7: Documentation
 
@@ -131,20 +131,20 @@ This document tracks the implementation of production-ready features for the bun
 **Commit Message**: `feat: improve client error handling`
 
 ### Tasks
-- [ ] Update `src/lib/client.ts` to:
+- [x] Update `src/lib/client.ts` to:
   - Handle `ApiResponse<T>` format
   - Extract error messages from response body
   - Throw typed errors with status codes
-- [ ] Create custom error type:
+- [x] Create custom error type:
   ```typescript
   class ApiError extends Error {
     status: number;
     constructor(message: string, status: number)
   }
   ```
-- [ ] Update `src/lib/contacts.ts` to handle new response format
-- [ ] Update frontend components to handle ApiError
-- [ ] Update loaders/actions for new response format
+- [x] Update `src/lib/contacts.ts` to handle new response format (automatic via client)
+- [x] Update frontend components to handle ApiError
+- [x] Update loaders/actions for new response format with try/catch
 
 ### Files to Create/Modify
 - `src/lib/client.ts` - Better error handling
@@ -264,4 +264,4 @@ After completing each phase:
 ---
 
 **Last Updated**: 2025-11-13
-**Status**: Phase 4 Complete ✅ - Ready for Phase 5
+**Status**: Phase 5 Complete ✅ - Ready for Phase 6
