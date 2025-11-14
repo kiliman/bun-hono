@@ -12,7 +12,7 @@ This document tracks the implementation of production-ready features for the bun
 
 - [x] Phase 1: Setup (Migration Infrastructure) ✅
 - [x] Phase 2: Database (bun:sqlite) ✅
-- [ ] Phase 3: Validation (Zod + Error Handling)
+- [x] Phase 3: Validation (Zod + Error Handling) ✅
 - [ ] Phase 4: Logging (pino)
 - [ ] Phase 5: Client (Error Handling)
 - [ ] Phase 6: Testing (API Integration Tests)
@@ -72,12 +72,12 @@ This document tracks the implementation of production-ready features for the bun
 **Commit Message**: `feat: add zod validation and error handling`
 
 ### Tasks
-- [ ] Create `src/schemas/` directory
-- [ ] Create `src/schemas/contact.schema.ts` with:
+- [x] Create `src/schemas/` directory
+- [x] Create `src/schemas/contact.schema.ts` with:
   - `createContactSchema`
   - `updateContactSchema`
   - `idParamSchema`
-- [ ] Add `ApiResponse<T>` type to `src/types/api.ts`:
+- [x] Add `ApiResponse<T>` type to `src/types/api.ts`:
   ```typescript
   export interface ApiResponse<T> {
     success: boolean;
@@ -85,12 +85,13 @@ This document tracks the implementation of production-ready features for the bun
     error?: string;
   }
   ```
-- [ ] Update `src/api/index.ts` with:
+- [x] Update `src/api/index.ts` with:
   - `zValidator` middleware on all routes
   - Try/catch error handling
-  - Proper HTTP status codes (200, 201, 404, 500)
+  - Proper HTTP status codes (200, 201, 404, 409, 500)
   - `ApiResponse<T>` wrapper on all responses
-- [ ] Test API endpoints return proper error responses
+  - Unique constraint error handling (409 for duplicates)
+- [x] Test API endpoints return proper error responses
 
 ### Files to Create/Modify
 - `src/schemas/contact.schema.ts` - New file
@@ -263,4 +264,4 @@ After completing each phase:
 ---
 
 **Last Updated**: 2025-11-13
-**Status**: Phase 2 Complete ✅ - Ready for Phase 3
+**Status**: Phase 3 Complete ✅ - Ready for Phase 4

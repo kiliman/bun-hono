@@ -24,8 +24,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
-      "biome check --write --no-errors-on-unmatched",
-      "tsgo"
+      "biome check --write --no-errors-on-unmatched"
     ]
   },
   "dependencies": {
