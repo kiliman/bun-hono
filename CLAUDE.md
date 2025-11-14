@@ -1,13 +1,9 @@
----
-description: Use Bun instead of Node.js, npm, pnpm, or vite.
-globs: "*.ts, *.tsx, *.html, *.css, *.js, *.jsx, package.json"
-alwaysApply: false
----
+# Architecture
 
 Default to using Bun instead of Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
+- Use `bun run test` which calls `vitest`
 - Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
 - Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
 - Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
@@ -25,7 +21,7 @@ Default to using Bun instead of Node.js.
 
 ## Testing
 
-Use `bun:test` to write tests with describe, test, expect
+Use `vitest` to write tests with describe, test, expect
 Use `@testing-library/react` for React tests
 
 ```ts
@@ -36,89 +32,58 @@ test("hello world", () => {
 });
 ```
 
-## Types
+## Server
+Using `Bun.serve` to serve both React frontend and Hono based API routes in the same port/process
+```typescript
+import { Hono } from "hono";
+import api from "./api";
+import index from "./index.html";
 
-- Use TypeScript types and share them between fronend and backend in the `src/types` folder (alias @types)
+const app = new Hono();
+app.route("/api/", api);
 
-## Backend
-
-
-
-
-## Frontend
-
-- Use React with React Router Data Mode, shadcn/ui, and Tailwind
-- Use loaders and actions for data fetching/mutations running client side
-
-
-
-
-
-```ts#index.ts
-import index from "./index.html"
-
-Bun.serve({
+const server = Bun.serve({
   routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
+    "/api/*": app.fetch, // API routes handled first
+    "/*": index, // React app serves everything else
   },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
+  development: process.env.NODE_ENV !== "production" && {
     hmr: true,
     console: true,
-  }
-})
+  },
+});
 ```
 
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
+## Backend
+- Use Hono to define API routes in `src/api` (alias @api)
 
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
+```typescript
+const api = new Hono();
+
+// fetch all contacts
+api.get("/contacts", async (c) => c.json(db.getAll<Contact>("contacts")));
+
+// fetch contact by id
+api.get("/contacts/:id", async (c) =>
+  c.json(db.getById<Contact>("contacts", c.req.param("id"))),
+);
+
+// create new contact
+api.post("/contacts", async (c) => {
+  const contact = (await c.req.json()) as NewContact;
+  return c.json(db.insert<NewContact>("contacts", contact));
+});
 ```
 
-With the following `main.tsx`:
+## Frontend
+- Use React with React Router Data Mode, shadcn/ui, and Tailwind
+- Routes are defined in `src/AppRoutes.tsx`
+- UI Routes are defined in `src/Pages` (`@/pagese`)
+- Components are defined in `src/Components` (`@/components`)
+- Use loaders and actions for data fetching/mutations running client side
+- Use helper functions that calls the API routes (src/lib/contacts.ts)
+- Use the `client.create` fetch wrapper (src/lib/client.ts)
 
-```tsx#main.tsx
-import React from "react";
 
-// import .css files directly and it works
-import '@/index.css';
-
-import { createRoot } from "react-dom/client";
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
+## Types
+- Use TypeScript types and share them between fronend and backend in the `src/types` folder (alias @types)
