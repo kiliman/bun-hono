@@ -1,48 +1,23 @@
-import data from "../../data/data.json";
+import { Database } from "bun:sqlite";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { migrate } from "../utils/migrate";
 
-type WithId<T> = T & { id: string };
-type WithOptionalId<T> = T & { id?: string };
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// biome-ignore lint/suspicious/noExplicitAny: unstructured JSON
-const _data = data as Record<string, any[]>;
+// Default to project root data folder in development, allow override via env
+const defaultDbPath = join(__dirname, "../../data/app.db");
+const dbPath = process.env.DATABASE_PATH
+  ? resolve(process.env.DATABASE_PATH)
+  : defaultDbPath;
 
-function getAll<T>(collection: string) {
-  return _data[collection] ?? ([] as T[]);
-}
+export const db = new Database(dbPath);
 
-function getById<T>(collection: string, id: string) {
-  return getAll<T>(collection).find((entity: WithId<T>) => entity.id === id) as
-    | T
-    | undefined;
-}
+// Enable WAL mode for better concurrency
+db.exec("PRAGMA journal_mode = WAL");
 
-function insert<T>(collection: string, entity: WithOptionalId<T>) {
-  const ids = getAll<T>(collection).map((entity: WithId<T>) =>
-    Number(entity.id),
-  );
-  const maxId = Math.max(...ids);
-  entity.id = String(maxId + 1);
-  if (!_data[collection]) _data[collection] = [];
-  _data[collection].push(entity);
-  return entity;
-}
+// Run migrations on startup
+migrate(db);
 
-function update<T>(collection: string, id: string, entity: Partial<T>) {
-  const existing = getById<T>(collection, id);
-  if (!existing) return null;
-  return Object.assign(existing, entity);
-}
-
-function deleteById<T>(collection: string, id: string) {
-  _data[collection] = getAll<T>(collection).filter(
-    (entity: WithId<T>) => entity.id !== id,
-  );
-}
-
-export const db = {
-  getAll,
-  getById,
-  insert,
-  update,
-  deleteById,
-};
+console.log(`📦 Database initialized at ${dbPath}`);

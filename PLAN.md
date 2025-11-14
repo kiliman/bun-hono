@@ -11,7 +11,7 @@ This document tracks the implementation of production-ready features for the bun
 ## Progress Overview
 
 - [x] Phase 1: Setup (Migration Infrastructure) ✅
-- [ ] Phase 2: Database (bun:sqlite)
+- [x] Phase 2: Database (bun:sqlite) ✅
 - [ ] Phase 3: Validation (Zod + Error Handling)
 - [ ] Phase 4: Logging (pino)
 - [ ] Phase 5: Client (Error Handling)
@@ -48,16 +48,16 @@ This document tracks the implementation of production-ready features for the bun
 **Commit Message**: `feat: replace in-memory db with bun:sqlite`
 
 ### Tasks
-- [ ] Replace `src/db/index.ts` with bun:sqlite implementation
-- [ ] Create `001-initial-contacts.sql` migration with Up/Down
-- [ ] Update db initialization to call `migrate(db)` on startup
-- [ ] Test migration commands work:
-  - `bun run migrate` (apply)
-  - `bun run migrate:status` (check)
-  - `bun run migrate:down` (rollback)
-  - `bun run migrate:up` (re-apply)
-- [ ] Remove `data/data.json` (no longer needed)
-- [ ] Add `data/` to .gitignore (for SQLite files)
+- [x] Replace `src/db/index.ts` with bun:sqlite implementation
+- [x] Create `001-initial-contacts.sql` migration with Up/Down
+- [x] Update db initialization to call `migrate(db)` on startup
+- [x] Test migration commands work:
+  - `bun run migrate` (apply) ✅
+  - `bun run migrate:status` (check) ✅
+  - `bun run migrate:down` (rollback) ✅
+  - `bun run migrate:up` (re-apply) ✅
+- [x] Remove `data/data.json` (no longer needed)
+- [x] Add `data/` to .gitignore (for SQLite files)
 
 ### Files to Create/Modify
 - `src/db/index.ts` - Replace with bun:sqlite
@@ -263,4 +263,4 @@ After completing each phase:
 ---
 
 **Last Updated**: 2025-11-13
-**Status**: Phase 1 Complete ✅ - Ready for Phase 2
+**Status**: Phase 2 Complete ✅ - Ready for Phase 3
