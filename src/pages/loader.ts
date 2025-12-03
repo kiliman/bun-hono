@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { fetchContactById, fetchContacts } from "@/lib/contacts";
+import { fetchContactById, fetchContacts } from "@/services/Contacts/client";
 
 export const loadContacts = async () => {
   const contacts = await fetchContacts();

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import ContactsSkeletonPage from "@/Layouts/HomeSkeleton";
 import ContactDetail from "@/pages/ContactDetail";
 import ContactsPage from "@/pages/Contacts";
-import type { Contact } from "@/types/contacts";
+import type { Contact } from "@/services/Contacts/interfaces";
 
 describe("Contact Detail Page", () => {
   let Stub: ReturnType<typeof createRoutesStub>;

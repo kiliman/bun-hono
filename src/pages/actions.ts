@@ -1,19 +1,10 @@
 import { type ActionFunctionArgs, redirect } from "react-router";
-import { ApiError } from "@/lib/client";
 import {
   createContact,
   deleteContact,
   updateFavoriteStatus,
-} from "@/lib/contacts";
-
-interface NewContact {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  phone: string;
-  avatar?: string;
-}
+} from "@/services/Contacts/client";
+import type { NewContact } from "@/services/Contacts/interfaces";
 
 export const newContactAction = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
@@ -34,7 +25,7 @@ export const newContactAction = async ({ request }: ActionFunctionArgs) => {
           const newContactResponse = await createContact(newContact);
           return redirect(`/contacts/${newContactResponse.id}`);
         } catch (error) {
-          if (error instanceof ApiError) {
+          if (error instanceof Error) {
             return { error: error.message };
           }
           return { error: "Failed to create contact" };
@@ -60,7 +51,7 @@ export const contactDetailActions = async ({ request }: ActionFunctionArgs) => {
         await deleteContact(id);
         return redirect("/");
       } catch (error) {
-        if (error instanceof ApiError) {
+        if (error instanceof Error) {
           console.error("Failed to delete contact:", error.message);
         }
         // Still redirect even on error (contact might be gone)
@@ -74,7 +65,7 @@ export const contactDetailActions = async ({ request }: ActionFunctionArgs) => {
         await updateFavoriteStatus(id, favorite);
         return null;
       } catch (error) {
-        if (error instanceof ApiError) {
+        if (error instanceof Error) {
           console.error("Failed to update favorite status:", error.message);
         }
         return null;

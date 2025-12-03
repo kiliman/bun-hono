@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
+import type { Contact, NewContact } from "@/services/Contacts/interfaces";
 import type { ApiResponse } from "@/types/api";
-import type { Contact, NewContact } from "@/types/contacts";
 
 // These tests require the dev server to be running on port 3000
 // Run: bun run dev

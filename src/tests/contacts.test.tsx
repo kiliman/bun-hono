@@ -3,7 +3,7 @@ import { createRoutesStub } from "react-router";
 import { expect, test } from "vitest";
 import ContactsSkeletonPage from "@/Layouts/HomeSkeleton";
 import ContactsPage from "@/pages/Contacts";
-import type { Contact } from "@/types/contacts";
+import type { Contact } from "@/services/Contacts/interfaces";
 
 test("Home page render new button", async () => {
   const Stub = createRoutesStub([
